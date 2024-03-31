@@ -7,6 +7,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRETKEY
 });
 
+
 const uploadCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) return null;
@@ -14,13 +15,16 @@ const uploadCloudinary = async (localFilePath) => {
         const response = await cloudinary.uploader.upload(localFilePath,
             {
                 resource_type: "auto",
-                public_id: "olympic_flag"
+                cloud_name: process.env.CLOUDINARY_CLOUDNAME,
+                api_key: process.env.CLOUDINARY_APIKEY,
+                api_secret: process.env.CLOUDINARY_API_SECRETKEY
             });
 
-        console(response.url);
+        fs.unlinkSync(localFilePath);
         return response;
 
     } catch (error) {
+        console.log(error)
         fs.unlinkSync(localFilePath);
         return null;
     }

@@ -5,6 +5,7 @@ class ApiResponse {
         this.data = data;
         this.message = message;
         this.success = statusCoce < 400;
-
     }
 }
+
+export default ApiResponse

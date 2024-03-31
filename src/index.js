@@ -2,15 +2,13 @@ import ConnectDB from "./db/db.js";
 import dotenv from "dotenv"
 import app from "./app.js";
 
-dotenv.config();
-
-
+dotenv.config({
+    path: './.env'
+});
 
 app.get("/", (req, res) => {
     res.json({ user: "Atif", isAdmin: true })
 })
-
-
 
 ConnectDB()
     .then(() => {
