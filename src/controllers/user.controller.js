@@ -5,6 +5,25 @@ import ApiError from "../utils/ApiError.js";
 import uploadCloudinary from "../utils/Cloudinary.service.js";
 import { User } from "../models/user.model.js";
 
+const generateAccessTokenAndRefreshToken = async (userId) => {
+    try {
+        const user = await User.findById(userId);
+
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+
+        await user.save({ validateBeforeSave: false })
+
+        return { accessToken, refreshToken }
+
+
+    } catch (error) {
+        throw new ApiError(500, "Something Went Wronge");
+    }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
 
     // Get user data from client
@@ -96,12 +115,34 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
 
-    res.json(new ApiResponse(200, {
-        userName: "Atif",
-        email: "maatifanimator@gmail.com",
-        accessToken: "AccessToken",
-        refreshToken: "RefreshToken"
-    }, "UserLogedIn"))
+    // Get data from body
+    // Validate data
+    // Find user 
+    // Generate refresh and access tokens
+    // Cookie parser
+
+    const { userName, email, password } = req.body;
+
+    if (!(userName || email)) {
+        throw new ApiError(400, "Please enter email or userName");
+    }
+
+    const user = User.findOne({
+        $or: [{ userName }, { email }]
+    })
+
+    if (!user) {
+        throw new ApiError(404, "User does not exist");
+    }
+
+    const isPasswordCorrect = user.isPasswordCorrect(password)
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "Invalid User credentials");
+    }
+
+    const { accessToken, refreshToken } = generateAccessTokenAndRefreshToken(user._id);
+
 })
 
 const findUser = asyncHandler(async (req, res) => {
