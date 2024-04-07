@@ -8,9 +8,7 @@ export const verifyUser = asyncHandler(async (req, _, next) => {
     // Extract token
     // Varify Token
     // Get user from db
-
     // Return User
-    // 
 
     try {
         const token = req.cookies?.accessToken || req.header
