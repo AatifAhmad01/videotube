@@ -252,7 +252,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
     res
         .status(200)
-        .json(new ApiResponse(200, res.user, "Current user fetched successfully"))
+        .json(new ApiResponse(200, req.user, "Current user fetched successfully"))
 })
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -330,11 +330,11 @@ const updateCoverImage = asyncHandler(async (req, res) => {
 
 })
 
-const getUserChennalProfile = asyncHandler(async (req, res) => {
+const getUserChannelProfile = asyncHandler(async (req, res) => {
     {
-        const { userName } = req.params;
+        const { username } = req.params;
 
-        if (!userName?.trim()) {
+        if (!username?.trim()) {
             throw new ApiError(400, "UserName not found");
         }
 
@@ -342,7 +342,7 @@ const getUserChennalProfile = asyncHandler(async (req, res) => {
 
             {
                 $match: {
-                    userName: userName?.toLowerCase()
+                    userName: username?.toLowerCase()
                 }
             },
             {
@@ -460,6 +460,6 @@ export {
     updateAccountDetails,
     updateAvatar,
     updateCoverImage,
-    getUserChennalProfile,
+    getUserChannelProfile,
     getWatchHistory
 }
