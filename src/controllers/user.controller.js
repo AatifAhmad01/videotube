@@ -6,6 +6,7 @@ import uploadCloudinary from "../utils/Cloudinary.service.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
     try {
@@ -35,8 +36,6 @@ const registerUser = asyncHandler(async (req, res) => {
     // Remove Password and refresh token
     // check for user creation
     // Return response
-
-    console.log(req.body);
 
     const { userName, fullName, email, password } = req.body;
 
@@ -115,7 +114,7 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Please enter email or userName");
     }
 
-    const user = User.findOne({
+    const user = await User.findOne({
         $or: [{ userName }, { email }]
     })
 
@@ -123,7 +122,7 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User does not exist");
     }
 
-    const isPasswordCorrect = user.isPasswordCorrect(password)
+    const isPasswordCorrect = await user.isPasswordCorrect(password)
 
     if (!isPasswordCorrect) {
         throw new ApiError(401, "Invalid User credentials");
@@ -131,7 +130,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
 
-    const loggedInUser = User.findById(user._id)
+    const loggedInUser = await User.findById(user._id)
         .select("-password -refreshToken");
 
 
@@ -146,21 +145,24 @@ const loginUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200,
                 {
-                    loggedInUser,
-                    accessToken,
-                    refreshToken
+                    user: loggedInUser,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
                 },
                 "User Logged In Successfully"
             )
         )
 
+    res.status(200).json(new ApiResponse(200, {}, "User Logged in"));
+
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
 
+    console.log(req.user._id)
     await User.findByIdAndUpdate(req.user._id, {
         $set: {
-            "refreshToken": undefined
+            "refreshToken": ""
         }
     });
 
@@ -184,14 +186,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     // generate new tokens 
     // return new tokens
 
-    const incommingRefreshToken = req.cookie.refreshToken || req.body.refreshToken
+    const incommingRefreshToken = req.cookie?.refreshToken || req.body.refreshToken
 
     if (!incommingRefreshToken) {
         throw new ApiError(401, "Unauthorized Request");
     }
 
     try {
-        const decodedToken = jwt.verifty(incommingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+        const decodedToken = jwt.verify(incommingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
 
         const user = await User.findById(decodedToken?._id);
 
@@ -230,9 +232,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 })
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
+
     const { oldPassword, newPassword } = req.body;
 
-    const user = User.findById(body.user?._id);
+    const user = await User.findById(req.user?._id);
 
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
@@ -256,13 +259,14 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 })
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
+
     const { fullName, email } = req.body;
 
     if (!fullName || !email) {
         throw new ApiError(400, "All fields are required");
     }
 
-    const updatedUser = await User.findByIdAndUpdate(body.user?._id,
+    const updatedUser = await User.findByIdAndUpdate(req.user?._id,
         {
             $set: {
                 fullName,
@@ -290,7 +294,7 @@ const updateAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while uploading file");
     }
 
-    const user = await User.findOneAndUpdate(body.user?._id,
+    const user = await User.findOneAndUpdate(req.user?._id,
         {
             $set: {
                 avatar: avatar.url
@@ -317,7 +321,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while uploading file");
     }
 
-    const user = await User.findOneAndUpdate(body.user?._id,
+    const user = await User.findOneAndUpdate(req.user?._id,
         {
             $set: {
                 coverImage: coverImage.url
