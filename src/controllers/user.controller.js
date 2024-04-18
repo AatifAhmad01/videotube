@@ -6,7 +6,6 @@ import uploadCloudinary from "../utils/Cloudinary.service.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import cookieParser from "cookie-parser";
 
 const generateAccessTokenAndRefreshToken = async (userId) => {
     try {
