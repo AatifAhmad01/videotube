@@ -71,15 +71,61 @@ const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
 
+    const { title, description, thumbnail } = req.body;
+
+    if (!title || !description || !thumbnail) {
+        throw new ApiError(400, "All Fields are required");
+    }
+
+    if (!videoId) throw new ApiError(400, "Invalid Video Id");
+
+    const thumbnailPath = req.files?.thumbnail[0]?.path
+
+    const newThumbnail = await uploadCloudinary(thumbnailPath);
+
+    if (newThumbnail) {
+        thumbnail = newThumbnail.url;
+    }
+
+    const updatedVideo = await Video.findByIdAndUpdate(videoId, {
+        $set: {
+            title,
+            description,
+            thumbnail
+        }
+    }, { new: true })
+
+    res.status(200)
+        .json(new ApiResponse(200, updatedVideo, "Video Details Updated Successfully"))
+
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
+
+    const deletedVideo = await Video.findByIdAndDelete(videoId);
+
+    if (!deletedVideo) throw new ApiError(400, "Invalid Video Id");
+
+    res.status(200)
+        .json(new ApiResponse(200, deletedVideo, "Video Deleted"))
+
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+
+    const video = await Video.findById(videoId);
+
+    if (!video) throw new ApiResponse(400, "Invalid video Id");
+
+    video.isPublished = !video.isPublished;
+
+    await video.save({ validateBeforeSave: false });
+
+    res.status(200)
+        .json(new ApiResponse(200, video, "Video status changed"));
 })
 
 export {
