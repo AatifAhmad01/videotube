@@ -1,8 +1,8 @@
 import mongoose from "mongoose"
 import { Comment } from "../models/comment.model.js"
-import { ApiError } from "../utils/ApiError.js"
-import { ApiResponse } from "../utils/ApiResponse.js"
-import { asyncHandler } from "../utils/asyncHandler.js"
+import ApiError from "../utils/ApiError.js"
+import ApiResponse from "../utils/ApiResponse.js"
+import asyncHandler from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
@@ -62,7 +62,7 @@ const deleteComment = asyncHandler(async (req, res) => {
     if (!deletedComment) throw new ApiError(500, "Something went Wronge");
 
     res.status(200)
-        .json(new ApiResponse(200, deletedComment, "Comment Updated Successfully"))
+        .json(new ApiResponse(200, deletedComment, "Comment Deleted Successfully"))
 })
 
 export {
